@@ -10,25 +10,25 @@ import re
 NMC_API_URL = "https://www.nmc.org.in/MCIRest/open/getPaginatedData"
 
 
-async def scrape_nmc_portal(registration_number: str, state_council: str) -> dict:
+async def scrape_nmc_portal(registration_number: str, state_council: str, year_of_admission: str = "") -> dict:
     try:
-        return await _call_nmc_api(registration_number, state_council)
+        return await _call_nmc_api(registration_number, state_council, year_of_admission)
     except Exception as e:
         return _not_found(registration_number, state_council, str(e))
 
 
-async def _call_nmc_api(reg_no: str, state_council: str) -> dict:
+async def _call_nmc_api(reg_no: str, state_council: str, year_of_admission: str = "") -> dict:
     params = {
         "service": "getPaginatedDoctor",
         "draw": "1",
         "start": "0",
-        "length": "500",
+        "length": "5000",
         "search[value]": "",
         "search[regex]": "false",
         "name": "",
         "registrationNo": reg_no,
         "smcId": "",
-        "year": "",
+        "year": year_of_admission if year_of_admission else "",
         "order[0][column]": "0",
         "order[0][dir]": "asc",
     }
