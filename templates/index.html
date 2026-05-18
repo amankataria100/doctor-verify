@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Doctor Verification Portal</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f5f6fa;
+    --card: #ffffff;
+    --border: #e2e5ec;
+    --primary: #2563eb;
+    --primary-dark: #1d4ed8;
+    --success: #16a34a;
+    --success-bg: #f0fdf4;
+    --success-border: #bbf7d0;
+    --error: #dc2626;
+    --error-bg: #fef2f2;
+    --error-border: #fecaca;
+    --text: #111827;
+    --text-secondary: #6b7280;
+    --text-muted: #9ca3af;
+    --radius: 12px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.06);
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 16px;
+    color: var(--text);
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+  header .logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  header .logo svg { color: var(--primary); }
+  header h1 { font-size: 26px; font-weight: 700; color: var(--text); }
+  header p { font-size: 14px; color: var(--text-secondary); margin-top: 6px; }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 28px;
+    width: 100%;
+    max-width: 520px;
+  }
+
+  .card + .card { margin-top: 20px; }
+
+  label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+
+  input, select {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    font-size: 14px;
+    color: var(--text);
+    background: #fff;
+    transition: border-color 0.15s;
+    outline: none;
+  }
+  input:focus, select:focus { border-color: var(--primary); }
+  input::placeholder { color: var(--text-muted); }
+
+  .form-row { margin-bottom: 18px; }
+  .form-row:last-of-type { margin-bottom: 0; }
+
+  .form-hint {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 5px;
+  }
+
+  .btn {
+    width: 100%;
+    padding: 12px;
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 22px;
+    transition: background 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .btn:hover { background: var(--primary-dark); }
+  .btn:disabled { background: #93c5fd; cursor: not-allowed; }
+
+  .spinner {
+    width: 18px; height: 18px;
+    border: 2.5px solid rgba(255,255,255,0.4);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: none;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .result-card { display: none; }
+
+  .result-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 18px;
+  }
+
+  .status-icon {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 22px;
+  }
+  .status-icon.ok  { background: var(--success-bg); }
+  .status-icon.err { background: var(--error-bg); }
+
+  .result-header h2 { font-size: 17px; font-weight: 700; }
+  .result-header .sub { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
+
+  .verified-badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 20px;
+  }
+  .verified-badge.ok  { background: var(--success-bg); color: var(--success); border: 1px solid var(--success-border); }
+  .verified-badge.err { background: var(--error-bg);   color: var(--error);   border: 1px solid var(--error-border); }
+
+  .info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+
+  .info-item .label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 3px;
+  }
+  .info-item .value {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    word-break: break-word;
+  }
+  .info-item.full { grid-column: 1 / -1; }
+
+  .qual-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 4px;
+  }
+  .qual-pill {
+    font-size: 12px;
+    padding: 3px 10px;
+    background: #eff6ff;
+    color: #1d4ed8;
+    border-radius: 20px;
+    border: 1px solid #bfdbfe;
+    font-weight: 500;
+  }
+
+  .source-tag {
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .error-msg {
+    font-size: 14px;
+    color: var(--error);
+    line-height: 1.5;
+  }
+
+  .nmc-link {
+    display: inline-block;
+    margin-top: 10px;
+    font-size: 13px;
+    color: var(--primary);
+    text-decoration: none;
+  }
+  .nmc-link:hover { text-decoration: underline; }
+
+  footer {
+    margin-top: 32px;
+    font-size: 12px;
+    color: var(--text-muted);
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <svg width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+      <path stroke-linecap="round" stroke-linejoin="round"
+        d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+    </svg>
+    <span style="font-size:22px;font-weight:800;color:#2563eb;">MedVerify</span>
+  </div>
+  <h1>Doctor Verification Portal</h1>
+  <p>Verify medical registration via NMC (National Medical Commission) records</p>
+</header>
+
+<div class="card">
+  <div class="form-row">
+    <label for="reg_no">Medical Registration Number</label>
+    <input id="reg_no" type="text" placeholder="e.g. DELHI-12345 or MH/12345/2015" />
+    <div class="form-hint">As printed on the doctor's registration certificate</div>
+  </div>
+
+  <div class="form-row">
+    <label for="state_council">State Medical Council</label>
+    <select id="state_council">
+      <option value="">— Select State Council —</option>
+      <option>Andhra Pradesh Medical Council</option>
+      <option>Assam Medical Council</option>
+      <option>Bihar Medical Council</option>
+      <option>Chhattisgarh Medical Council</option>
+      <option>Delhi Medical Council</option>
+      <option>Goa Medical Council</option>
+      <option>Gujarat Medical Council</option>
+      <option>Haryana Medical Council</option>
+      <option>Himachal Pradesh Medical Council</option>
+      <option>Jharkhand Medical Council</option>
+      <option>Karnataka Medical Council</option>
+      <option>Madhya Pradesh Medical Council</option>
+      <option>Maharashtra Medical Council</option>
+      <option>Medical Council of India (MCI)</option>
+      <option>National Medical Commission (NMC)</option>
+      <option>Odisha Council of Medical Registration</option>
+      <option>Punjab Medical Council</option>
+      <option>Rajasthan Medical Council</option>
+      <option>Tamil Nadu Medical Council</option>
+      <option>Telangana State Medical Council</option>
+      <option>Travancore Cochin Medical Council (Kerala)</option>
+      <option>Uttarakhand Medical Council</option>
+      <option>Uttar Pradesh Medical Council</option>
+      <option>West Bengal Medical Council</option>
+    </select>
+  </div>
+
+  <div class="form-row">
+    <label for="year">Year of Admission <span style="font-weight:400;color:#9ca3af">(optional)</span></label>
+    <input id="year" type="text" placeholder="e.g. 2015" maxlength="4" />
+  </div>
+
+  <button class="btn" id="verify-btn" onclick="verify()">
+    <span id="btn-text">Verify Doctor</span>
+    <div class="spinner" id="spinner"></div>
+  </button>
+</div>
+
+<!-- Result -->
+<div class="card result-card" id="result-card">
+
+  <!-- SUCCESS -->
+  <div id="success-section" style="display:none">
+    <div class="result-header">
+      <div class="status-icon ok" id="status-icon">✅</div>
+      <div>
+        <h2 id="doc-name">—</h2>
+        <div class="sub" id="doc-reg">—</div>
+      </div>
+      <span class="verified-badge ok" id="verified-badge" style="margin-left:auto">Verified</span>
+    </div>
+
+    <div class="info-grid">
+      <div class="info-item">
+        <div class="label">Specialization</div>
+        <div class="value" id="doc-spec">—</div>
+      </div>
+      <div class="info-item">
+        <div class="label">Status</div>
+        <div class="value" id="doc-status">—</div>
+      </div>
+      <div class="info-item">
+        <div class="label">State Council</div>
+        <div class="value" id="doc-council">—</div>
+      </div>
+      <div class="info-item">
+        <div class="label">Registration Date</div>
+        <div class="value" id="doc-date">—</div>
+      </div><div class="info-item full">
+        <div class="label">Address</div>
+        <div class="value" id="doc-address">—</div>
+      </div>
+      <div class="info-item full">
+        <div class="label">Qualifications</div>
+        <div class="qual-list" id="doc-quals"></div>
+      </div>
+    </div>
+
+    <div class="source-tag">
+      Data sourced from: <strong id="doc-source">—</strong>
+    </div>
+  </div>
+
+  <!-- ERROR -->
+  <div id="error-section" style="display:none">
+    <div class="result-header">
+      <div class="status-icon err">❌</div>
+      <div>
+        <h2>Not Verified</h2>
+        <div class="sub">Doctor not found in registry</div>
+      </div>
+      <span class="verified-badge err" style="margin-left:auto">Not Found</span>
+    </div>
+    <p class="error-msg" id="error-msg">—</p>
+    <a class="nmc-link" href="https://www.nmc.org.in/information-desk/indian-medical-register/" target="_blank">
+      → Verify manually on NMC portal
+    </a>
+  </div>
+
+</div>
+
+<footer>
+  Data sourced from NMC Indian Medical Register &nbsp;·&nbsp;
+  For official verification visit <a href="https://www.nmc.org.in" target="_blank">nmc.org.in</a>
+</footer>
+
+<script>
+async function verify() {
+  const regNo   = document.getElementById('reg_no').value.trim();
+  const council = document.getElementById('state_council').value.trim();
+  const year    = document.getElementById('year').value.trim();
+
+  if (!regNo || !council) {
+    alert('Please enter registration number and select state council.');
+    return;
+  }
+
+  const btn     = document.getElementById('verify-btn');
+  const spinner = document.getElementById('spinner');
+  const btnText = document.getElementById('btn-text');
+  btn.disabled  = true;
+  spinner.style.display = 'block';
+  btnText.textContent = 'Verifying…';
+
+  const resultCard = document.getElementById('result-card');
+  resultCard.style.display = 'none';
+
+  try {
+    const resp = await fetch('/api/verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        registration_number: regNo,
+        state_council: council,
+        year_of_admission: year,
+      }),
+    });
+
+    const data = await resp.json();
+    showResult(data);
+
+  } catch (err) {
+    showResult({ verified: false, error: 'Network error. Please try again.' });
+  } finally {
+    btn.disabled = false;
+    spinner.style.display = 'none';
+    btnText.textContent = 'Verify Doctor';
+  }
+}
+
+function showResult(data) {
+  const card    = document.getElementById('result-card');
+  const success = document.getElementById('success-section');
+  const error   = document.getElementById('error-section');
+  card.style.display = 'block';
+
+  const sourceLabels = {
+    surepass:   'Surepass NMC API',
+    idfy:       'IDfy / RapidAPI',
+    nmc_portal: 'NMC Indian Medical Register',
+  };
+
+  if (data.verified) {
+    success.style.display = 'block';
+    error.style.display   = 'none';
+
+    const isSuspended = data.status === 'Suspended';
+
+    // Badge — Verified (green) or Suspended (red)
+    const badge = document.getElementById('verified-badge');
+    if (isSuspended) {
+      badge.textContent = 'Suspended';
+      badge.style.background = '#fef2f2';
+      badge.style.color = '#dc2626';
+      badge.style.border = '1px solid #fecaca';
+    } else {
+      badge.textContent = 'Verified';
+      badge.style.background = '#f0fdf4';
+      badge.style.color = '#16a34a';
+      badge.style.border = '1px solid #bbf7d0';
+    }
+
+    // Status icon
+    const icon = document.getElementById('status-icon');
+    icon.textContent = isSuspended ? '⛔' : '✅';
+    icon.style.background = isSuspended ? '#fef2f2' : '#f0fdf4';
+
+    document.getElementById('doc-name').textContent    = data.doctor_name || '—';
+    document.getElementById('doc-reg').textContent     = `Reg. No: ${data.registration_number || '—'}`;
+    document.getElementById('doc-spec').textContent    = data.specialization || '—';
+    document.getElementById('doc-council').textContent = data.state_council || '—';
+    document.getElementById('doc-date').textContent    = data.registration_date || 'N/A';
+    document.getElementById('doc-source').textContent  =
+      sourceLabels[data.source] || data.source || 'NMC';
+document.getElementById('doc-address').textContent = data.address || 'Not available';
+    // Status with color
+    const statusEl = document.getElementById('doc-status');
+    statusEl.textContent = data.status || 'Active';
+    statusEl.style.color = isSuspended ? '#dc2626' : '#16a34a';
+    statusEl.style.fontWeight = '600';
+
+    // Qualifications pills
+    const qualContainer = document.getElementById('doc-quals');
+    qualContainer.innerHTML = '';
+    const quals = Array.isArray(data.qualifications) ? data.qualifications : [data.qualifications];
+    quals.filter(Boolean).forEach(q => {
+      const pill = document.createElement('span');
+      pill.className = 'qual-pill';
+      pill.textContent = q;
+      qualContainer.appendChild(pill);
+    });
+    if (!quals.filter(Boolean).length) {
+      qualContainer.innerHTML = '<span class="qual-pill">MBBS</span>';
+    }
+
+  } else {
+    success.style.display = 'none';
+    error.style.display   = 'block';
+    document.getElementById('error-msg').textContent =
+      data.error || 'Doctor not found in registry. Please verify the registration number and state council.';
+  }
+
+  card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') verify();
+});
+</script>
+</body>
+</html>
