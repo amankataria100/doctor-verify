@@ -52,7 +52,7 @@ async def _call_nmc_api(reg_no: str, state_council: str) -> dict:
         ),
     }
 
-    async with httpx.AsyncClient(timeout=20, follow_redirects=True) as client:
+    async with httpx.AsyncClient(timeout=20, follow_redirects=True, verify=False) as client:
         resp = await client.get(NMC_API_URL, params=params, headers=headers)
         resp.raise_for_status()
         data = resp.json()
@@ -130,7 +130,7 @@ async def _fetch_doctor_detail(doctor_id: str, reg_no: str, headers: dict) -> di
             "doctorId": doctor_id,
             "regdNoValue": reg_no,
         }
-        async with httpx.AsyncClient(timeout=15, follow_redirects=True) as client:
+        async with httpx.AsyncClient(timeout=15, follow_redirects=True, verify=False) as client:
             resp = await client.post(url, json=payload, headers=detail_headers)
             resp.raise_for_status()
             data = resp.json()
@@ -207,7 +207,7 @@ async def _check_blacklist(reg_no: str, council: str) -> bool:
             "suspendDate": "",
             "restorDate": "",
         }
-        async with httpx.AsyncClient(timeout=15, follow_redirects=True) as client:
+        async with httpx.AsyncClient(timeout=15, follow_redirects=True, verify=False) as client:
             resp = await client.post(url, json=payload, headers=headers)
             resp.raise_for_status()
             data = resp.json()
