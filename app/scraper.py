@@ -58,6 +58,10 @@ async def _call_nmc_api(reg_no: str, state_council: str, year_of_admission: str 
         data = resp.json()
 
     doctors = data.get("data", [])
+    print(f"DEBUG Railway: reg={reg_no} year={year_of_admission} total_results={len(doctors)} recordsTotal={data.get('recordsTotal')}")
+    if doctors:
+        reg_matches = [d for d in doctors if len(d) > 2 and str(d[2]).strip().upper() == reg_no.strip().upper()]
+        print(f"DEBUG Railway: reg_matches={len(reg_matches)} first_match={reg_matches[0] if reg_matches else 'none'}")
     if not doctors:
         return _not_found(reg_no, state_council, "No record found in NMC registry")
 
