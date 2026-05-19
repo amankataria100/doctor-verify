@@ -36,7 +36,7 @@ async def verify_doctor(registration_number: str,
             return result
 
     # --- Source 3: NMC Portal Scraper (always runs as fallback) ---
-    result = await scrape_nmc_portal(registration_number, state_council)
+    result = await scrape_nmc_portal(registration_number, state_council, year_of_admission)
     return result
 
 
