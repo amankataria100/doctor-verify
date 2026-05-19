@@ -25,7 +25,7 @@ async def verify_doctor(registration_number: str,
 
     # --- Source 1: Surepass ---
     if SUREPASS_TOKEN:
-        result = await _surepass_verify(registration_number, state_council, year_of_admission)
+        result = await scrape_nmc_portal(registration_number, state_council, year_of_admission)
         if result.get("verified"):
             return result
 
